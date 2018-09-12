@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+
+$:.unshift File.join(File.dirname(__FILE__), '../lib')
+require 'rank-commiters/probe'
+require 'rank-commiters/parser'
+require 'optparse'
+
+opts = OptionParser.new do |opts|
+  opts.banner = 'Usage: rank-commiters [options]'
+
+  opts.separator ''
+  opts.separator 'Specific options:'
+
+  opts.on('-r', '--repository ["owner/repo"]', String, '[Obrigatório] Projeto a ser analisado (Ex.: "Dinda-com-br/braspag-rest")') do |r|
+    RankCommiters::Config.repository = r
+  end
+
+  opts.on('-t', '--access_token [token]', String, 'Token de Acesso do GitHub') do |t|
+    RankCommiters::Config.access_token = t
+  end
+
+  opts.on('-o', '--output_path [path]', String, 'Caminho do diretório onde o arquivo será salvo') do |o|
+    RankCommiters::Config.output_path = o
+  end
+
+  opts.separator ''
+  opts.separator 'Common options:'
+
+  opts.on_tail('-h', '--help', 'Show this message') do
+    puts opts
+    exit
+  end
+end
+
+opts.parse!
+unless RankCommiters::Config.repository
+  puts opts
+  exit
+end
+
+probe   = RankCommiters::Probe.new
+results = probe.query(RankCommiters::Config.repository)
+
+hsh = RankCommiters.Parser(results)
+
+if hsh[:commiters].empty?
+  puts "Ops! #{hsh[:status]}."
+else
+  fn = File.join(
+    RankCommiters::Config.output_path,
+    '%s_%s.txt' % [
+      RankCommiters::Config.repository.tr('/', '_'),
+      Time.now.strftime('%Y%m%d%H%M%S')
+    ]
+  )
+
+  output = File.open(fn, 'w')
+
+  while (commiter = hsh[:commiters].shift)
+    output << (commiter.last.values * ';') << ';'
+    output << "\r\n" unless hsh[:commiters].empty?
+  end
+
+  output.close
+  puts "Arquivo de saída gerado com sucesso. O arquivo está localizado em #{output.path}"
+end
