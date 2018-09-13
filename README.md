@@ -46,6 +46,9 @@ Rodrigo;rodrigo123@gmail.com;rodrigosimoes;https://github.com/RodrigoSimoesAr
 Jose;jose@hotmail.com;josedascouves;https://github.com/joselinho;14;
 ```
 
+### Observação:
+O rank é montado com base no login do commiter no Github. Não foi adotado o email para o cálculo pois a cada momento o commiter pode utilizar um email diferente. Os commits sem login serão ignorados pois o próprio Github não consegue vincular o commit a uma conta de usuário.
+
 ##### Casos que nenhum arquivo será gerado:
 
 Repositório inexistente:
